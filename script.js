@@ -107,106 +107,63 @@ const chapters = [
     }
 ];
 
-// Pagination variables
-const itemsPerPage = 5;
-let currentPage = 1;
-const totalPages = Math.ceil(chapters.length / itemsPerPage);
-
-// Function to display chapters for a specific page
-function displayChapters(page) {
-    const chapterList = document.getElementById('chapterList');
-    if (!chapterList) return;
+// Function to populate dropdown with chapters
+function populateChapterDropdown() {
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    if (!dropdownMenu) return;
     
-    chapterList.innerHTML = '';
+    dropdownMenu.innerHTML = '';
     
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, chapters.length);
-    
-    for (let i = startIndex; i < endIndex; i++) {
-        const chapter = chapters[i];
-        const chapterElement = document.createElement('div');
-        chapterElement.className = 'chapter-item';
-        chapterElement.innerHTML = `
-            <h3><span class="chapter-number">${chapter.number}</span> ${chapter.title}</h3>
-            <p>${chapter.description}</p>
+    chapters.forEach(chapter => {
+        const dropdownItem = document.createElement('div');
+        dropdownItem.className = 'dropdown-item';
+        dropdownItem.innerHTML = `
+            <span class="chapter-number">${chapter.number}</span>
+            <div>
+                <strong>${chapter.title}</strong>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--color-gray);">${chapter.description}</p>
+            </div>
         `;
-        chapterList.appendChild(chapterElement);
-    }
+        dropdownMenu.appendChild(dropdownItem);
+    });
 }
 
-// Function to create pagination buttons
-function setupPagination() {
-    const paginationContainer = document.getElementById('pagination');
-    if (!paginationContainer) return;
+// Dropdown functionality
+function setupChapterDropdown() {
+    const dropdownToggle = document.getElementById('dropdownToggle');
+    const dropdownMenu = document.getElementById('dropdownMenu');
     
-    paginationContainer.innerHTML = '';
+    if (!dropdownToggle || !dropdownMenu) return;
     
-    // Previous button
-    const prevButton = document.createElement('button');
-    prevButton.className = 'page-btn';
-    prevButton.textContent = 'Previous';
-    prevButton.disabled = currentPage === 1;
-    prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            displayChapters(currentPage);
-            updatePaginationButtons();
-        }
+    // Toggle dropdown on button click
+    dropdownToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('active');
+        dropdownToggle.classList.toggle('active');
     });
-    paginationContainer.appendChild(prevButton);
     
-    // Page number buttons
-    for (let i = 1; i <= totalPages; i++) {
-        const pageButton = document.createElement('button');
-        pageButton.className = 'page-btn';
-        pageButton.textContent = i;
-        if (i === currentPage) {
-            pageButton.classList.add('active');
-        }
-        pageButton.addEventListener('click', () => {
-            currentPage = i;
-            displayChapters(currentPage);
-            updatePaginationButtons();
-        });
-        paginationContainer.appendChild(pageButton);
-    }
-    
-    // Next button
-    const nextButton = document.createElement('button');
-    nextButton.className = 'page-btn';
-    nextButton.textContent = 'Next';
-    nextButton.disabled = currentPage === totalPages;
-    nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            displayChapters(currentPage);
-            updatePaginationButtons();
-        }
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        dropdownMenu.classList.remove('active');
+        dropdownToggle.classList.remove('active');
     });
-    paginationContainer.appendChild(nextButton);
-}
-
-// Function to update active state of pagination buttons
-function updatePaginationButtons() {
-    const buttons = document.querySelectorAll('.page-btn');
-    buttons.forEach((button, index) => {
-        button.classList.remove('active');
-        
-        // Skip the Previous button (index 0) and Next button (last index)
-        if (index > 0 && index <= totalPages) {
-            if (index === currentPage) {
-                button.classList.add('active');
-            }
-        }
-        
-        // Update Previous button disabled state
-        if (index === 0) {
-            button.disabled = currentPage === 1;
-        }
-        
-        // Update Next button disabled state
-        if (index === buttons.length - 1) {
-            button.disabled = currentPage === totalPages;
+    
+    // Prevent dropdown from closing when clicking inside
+    dropdownMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    // Update button text when a chapter is selected
+    dropdownMenu.addEventListener('click', function(e) {
+        const dropdownItem = e.target.closest('.dropdown-item');
+        if (dropdownItem) {
+            const chapterNumber = dropdownItem.querySelector('.chapter-number').textContent;
+            const chapterTitle = dropdownItem.querySelector('strong').textContent;
+            dropdownToggle.querySelector('span').textContent = `Chapter ${chapterNumber}: ${chapterTitle}`;
+            
+            // Optional: Close dropdown after selection
+            dropdownMenu.classList.remove('active');
+            dropdownToggle.classList.remove('active');
         }
     });
 }
@@ -220,11 +177,11 @@ function checkProtectedFeatures() {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize chapters and pagination only if on the chapters page
-    const chapterList = document.getElementById('chapterList');
-    if (chapterList) {
-        displayChapters(currentPage);
-        setupPagination();
+    // Initialize chapters dropdown if on the chapters page
+    const chapterDropdown = document.getElementById('dropdownMenu');
+    if (chapterDropdown) {
+        populateChapterDropdown();
+        setupChapterDropdown();
     }
     
     // Mobile menu toggle
